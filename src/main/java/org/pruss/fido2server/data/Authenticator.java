@@ -6,6 +6,7 @@ import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
 import com.yubico.webauthn.data.ByteArray;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.pruss.fido2server.util.ByteArrayAttributeConverter;
 
 import javax.persistence.*;
 import java.util.Optional;
