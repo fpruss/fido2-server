@@ -1,23 +1,10 @@
 package org.pruss.fido2server.controller;
 
-import java.io.IOException;
-import java.security.SecureRandom;
-
-import javax.servlet.http.HttpSession;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.yubico.webauthn.AssertionRequest;
-import com.yubico.webauthn.AssertionResult;
-import com.yubico.webauthn.FinishAssertionOptions;
-import com.yubico.webauthn.FinishRegistrationOptions;
-import com.yubico.webauthn.RegistrationResult;
-import com.yubico.webauthn.RelyingParty;
-import com.yubico.webauthn.StartAssertionOptions;
-import com.yubico.webauthn.StartRegistrationOptions;
+import com.yubico.webauthn.*;
 import com.yubico.webauthn.data.*;
 import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
-
 import lombok.AllArgsConstructor;
 import org.pruss.fido2server.data.ApplicationUser;
 import org.pruss.fido2server.data.Authenticator;
@@ -33,12 +20,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.security.SecureRandom;
+
 @Controller
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class AuthController {
 
     private final RelyingParty relyingParty;
-    private final RegistrationService service;
+    private final RegistrationService registrationService;
 
     @GetMapping("/")
     public String welcome() {
@@ -52,25 +43,25 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseBody
-    public String newUserRegistration(
-            @RequestParam String username,
-            @RequestParam String display,
-            HttpSession session
-    ) {
-        ApplicationUser existingUser = service.getApplicationUserRepository().findByUsername(username);
+    public String newUserRegistration(@RequestParam String username, @RequestParam String displayName, HttpSession session) {
+        ApplicationUser existingUser = registrationService.getApplicationUserRepository().findByUsername(username);
         if (existingUser == null) {
-            UserIdentity userIdentity = UserIdentity.builder()
-                    .name(username)
-                    .displayName(display)
-                    .id(generateRandom(32))
-                    .build();
-            ApplicationUser saveUser = new ApplicationUser(userIdentity);
-            service.getApplicationUserRepository().save(saveUser);
-            String response = newAuthRegistration(saveUser, session);
+            ApplicationUser user = buildApplicationUser(username, displayName);
+            registrationService.getApplicationUserRepository().save(user);
+            String response = newAuthRegistration(user, session);
             return response;
         } else {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " already exists. Choose a new name.");
         }
+    }
+
+    private ApplicationUser buildApplicationUser(String username, String displayName) {
+        UserIdentity userIdentity = UserIdentity.builder()
+                .name(username)
+                .displayName(displayName)
+                .id(generateRandom(32))
+                .build();
+        return new ApplicationUser(userIdentity);
     }
 
     private ByteArray generateRandom(int length) {
@@ -85,7 +76,7 @@ public class AuthController {
             @RequestParam ApplicationUser user,
             HttpSession session
     ) {
-        ApplicationUser existingUser = service.getApplicationUserRepository().findByHandle(user.getHandle());
+        ApplicationUser existingUser = registrationService.getApplicationUserRepository().findByHandle(user.getHandle());
         if (existingUser != null) {
             UserIdentity userIdentity = user.toUserIdentity();
             StartRegistrationOptions registrationOptions = StartRegistrationOptions.builder()
@@ -112,7 +103,7 @@ public class AuthController {
             HttpSession session
     ) {
         try {
-            ApplicationUser user = service.getApplicationUserRepository().findByUsername(username);
+            ApplicationUser user = registrationService.getApplicationUserRepository().findByUsername(username);
             PublicKeyCredentialCreationOptions requestOptions = (PublicKeyCredentialCreationOptions) session.getAttribute(user.getUsername());
             if (requestOptions != null) {
                 PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc =
@@ -123,7 +114,7 @@ public class AuthController {
                         .build();
                 RegistrationResult result = relyingParty.finishRegistration(options);
                 Authenticator savedAuth = new Authenticator(result, pkc.getResponse(), user, credname);
-                service.getAuthenticatorRepository().save(savedAuth);
+                registrationService.getAuthenticatorRepository().save(savedAuth);
                 return new ModelAndView("redirect:/login", HttpStatus.SEE_OTHER);
             } else {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Cached request expired. Try to register again!");
@@ -167,7 +158,7 @@ public class AuthController {
         try {
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc;
             pkc = PublicKeyCredential.parseAssertionResponseJson(credential);
-            AssertionRequest request = (AssertionRequest)session.getAttribute(username);
+            AssertionRequest request = (AssertionRequest) session.getAttribute(username);
             AssertionResult result = relyingParty.finishAssertion(FinishAssertionOptions.builder()
                     .request(request)
                     .response(pkc)
