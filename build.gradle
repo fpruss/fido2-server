@@ -30,6 +30,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.google.guava:guava:31.1-jre'
 }
 
 tasks.named('test') {

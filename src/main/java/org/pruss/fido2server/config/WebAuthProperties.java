@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Set;
 
 @Configuration
+@ConfigurationProperties(prefix = "authn")
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "authn")
 public class WebAuthProperties {
     private String hostName;
     private String display;

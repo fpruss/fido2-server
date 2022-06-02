@@ -1,4 +1,4 @@
-package org.pruss.fido2server.data;
+package org.pruss.fido2server.util;
 
 import com.yubico.webauthn.data.ByteArray;
 
