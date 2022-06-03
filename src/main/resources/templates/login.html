@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FIDO2 Server Demo</title>
+</head>
+<body>
+<div th:replace="header :: header">...</div>
+<div>
+    <div id="error"></div>
+    <form action="/welcome" method="POST" id="form">
+        <legend>Login</legend>
+        <label for="username">Your Username:</label>
+        <input type="text" id="username" name="username">
+        <input type="hidden" id="credential" name="credential">
+    </form>
+    <button id="submit" onclick="checkCredentials();">Submit</button>
+</div>
+</body>
+<script src="javascript/base64js.min.js"></script>
+<script src="javascript/custom.js"></script>
+<script src="javascript/login.js"></script>
+</html>
