@@ -7,26 +7,22 @@
 <body>
 <div th:replace="header :: header">...</div>
 <div>
-    <div id="errors"></div>
-    <form id="form" action="/registerauth" method="POST">
-        <legend>Register Authentication</legend>
-        <div>
-            <label for="username">Username:</label>
-            <input type="text" name="username" id="username" required>
-        </div>
-        <div>
-            <label for="displayName">Display Name:</label>
-            <input type="text" name="displayName" id="displayName" required>
-        </div>
-        <div>
-            <label for="credentialName">Authenticator Name:</label>
-            <input type="text" name="credentialName" id="credentialName" required>
-        </div>
-        <button type="submit">Submit</button>
-    </form>
+    <legend>Register Authentication</legend>
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required>
+    </div>
+    <div>
+        <label for="displayName">Display Name:</label>
+        <input type="text" name="displayName" id="displayName" required>
+    </div>
+    <button id="registerButton">Register</button>
 </div>
 </body>
-<script src="node_modules/base64-js/base64js.min.js"></script>
-<script src="javascript/custom.js"></script>
-<script src="javascript/registerauth.js"></script>
+<script
+        src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+        crossorigin="anonymous"></script>
+<script src="/js/base64js.min.js"></script>
+<script type="module" src="/js/webauthn.js"></script>
 </html>
