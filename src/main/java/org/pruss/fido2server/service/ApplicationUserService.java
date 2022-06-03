@@ -29,7 +29,7 @@ public class ApplicationUserService {
         UserIdentity userIdentity = UserIdentity.builder()
                 .name(username)
                 .displayName(displayName)
-                .id(generateRandom(32))
+                .id(generateRandom())
                 .build();
         return new ApplicationUser(userIdentity);
     }
@@ -46,8 +46,8 @@ public class ApplicationUserService {
         credentialRepositoryImpl.getApplicationUserRepository().save(user);
     }
 
-    private ByteArray generateRandom(int length) {
-        byte[] bytes = new byte[length];
+    private ByteArray generateRandom() {
+        byte[] bytes = new byte[32];
         new SecureRandom().nextBytes(bytes);
         return new ByteArray(bytes);
     }

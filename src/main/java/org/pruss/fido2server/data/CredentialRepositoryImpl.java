@@ -18,7 +18,7 @@ import static java.util.stream.Collectors.*;
 @Getter
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 @Repository
-public class RegistrationService implements CredentialRepository {
+public class CredentialRepositoryImpl implements CredentialRepository {
 
     private final ApplicationUserRepository applicationUserRepository;
 
