@@ -13,6 +13,6 @@ import java.util.Set;
 @Setter
 public class WebAuthProperties {
     private String hostName;
-    private String display;
+    private String displayName;
     private Set<String> origin;
 }

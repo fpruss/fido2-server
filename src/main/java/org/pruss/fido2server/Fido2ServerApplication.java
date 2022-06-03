@@ -23,7 +23,7 @@ public class Fido2ServerApplication {
     public RelyingParty relyingParty(CredentialRepositoryImpl registrationRepository, WebAuthProperties properties) {
         RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
                 .id(properties.getHostName())
-                .name(properties.getDisplay())
+                .name(properties.getDisplayName())
                 .build();
 
         return RelyingParty.builder()
