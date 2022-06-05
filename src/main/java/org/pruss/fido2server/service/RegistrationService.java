@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static com.yubico.webauthn.data.PublicKeyCredential.parseAssertionResponseJson;
+import static java.util.Objects.*;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
@@ -29,11 +30,11 @@ public class RegistrationService {
         return relyingParty.startRegistration(registrationOptions);
     }
 
-    public Authenticator finishRelyingPartyRegistration(ApplicationUser user, HttpSession session, String credential, String credentialName) throws IOException, RegistrationFailedException, NullPointerException {
+    public Authenticator finishRelyingPartyRegistration(ApplicationUser user, HttpSession session, String credential) throws IOException, RegistrationFailedException, NullPointerException {
         PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential.parseRegistrationResponseJson(credential);
         FinishRegistrationOptions options = getFinishRegistrationOptions(user, session, pkc);
         RegistrationResult result = relyingParty.finishRegistration(options);
-        return new Authenticator(result, pkc.getResponse(), user, credentialName);
+        return new Authenticator(result, pkc.getResponse(), user);
     }
 
     public AssertionResult buildAssertionResult(String credential, String username, HttpSession session) throws AssertionFailedException, IOException {
@@ -56,7 +57,7 @@ public class RegistrationService {
     }
 
     private FinishRegistrationOptions getFinishRegistrationOptions(ApplicationUser user, HttpSession session, PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc) {
-        PublicKeyCredentialCreationOptions requestOptions = Objects.requireNonNull(getRequestOptions(user, session));
+        PublicKeyCredentialCreationOptions requestOptions = requireNonNull(getRequestOptions(user, session));
         return FinishRegistrationOptions.builder()
                 .request(requestOptions)
                 .response(pkc)

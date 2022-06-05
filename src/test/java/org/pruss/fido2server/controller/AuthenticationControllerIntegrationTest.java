@@ -44,7 +44,7 @@ public class AuthenticationControllerIntegrationTest {
     @Test
     public void test_get_register() throws Exception {
         mockMvc.perform(
-                        get("/register")
+                        get("/register/begin")
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -54,7 +54,7 @@ public class AuthenticationControllerIntegrationTest {
     @Test
     public void test_post_register() throws Exception {
         mockMvc.perform(
-                post("/register")
+                post("/register/begin")
                         .contentType(APPLICATION_JSON)
                         .content("""
                                 {"username": "testuser", "displayname": "testuser"

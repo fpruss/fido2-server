@@ -6,7 +6,9 @@ import lombok.AllArgsConstructor;
 import org.pruss.fido2server.data.ApplicationUser;
 import org.pruss.fido2server.data.CredentialRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.SecureRandom;
 import java.util.Optional;
@@ -17,12 +19,22 @@ public class ApplicationUserService {
 
     private final CredentialRepositoryImpl credentialRepositoryImpl;
 
-    public boolean doesNotExist(ApplicationUser user) {
-        return getUser(user.getHandle()).isEmpty();
+    public void requireExists(ApplicationUser user) {
+        if (getUser(user.getHandle()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User " + user.getUsername() + " does not exist. Please register.");
+        }
     }
 
-    public boolean exists(String username) {
-        return getUser(username).isPresent();
+    public void requireExists(String username) {
+        if (getUser(username).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User " + username + " does not exist. Please register.");
+        }
+    }
+
+    public void requireDoesNotExist(String username) {
+        if (getUser(username).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " already exists. Choose a new name.");
+        }
     }
 
     public ApplicationUser createApplicationUser(String username, String displayName) {

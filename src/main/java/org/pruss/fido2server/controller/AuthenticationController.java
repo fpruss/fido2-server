@@ -39,31 +39,25 @@ public class AuthenticationController {
         return "index";
     }
 
-    @GetMapping("/register")
+    @GetMapping("/register/begin")
     public String registerUser(Model model) {
         return "register";
     }
 
-    @PostMapping("/register")
+    @PostMapping("/register/begin")
     @ResponseBody
-    public String saveNewUserAndGetPublicKeyCredentialCreationOptions(@RequestParam String username, @RequestParam String displayName, HttpSession session) {
-        if (userService.exists(username)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " already exists. Choose a new name.");
-        }
-
+    public String beginRegistration(
+            @RequestParam String username,
+            @RequestParam String displayName,
+            HttpSession session) {
+        userService.requireDoesNotExist(username);
         ApplicationUser user = userService.createApplicationUser(username, displayName);
         userService.save(user);
-
         return getPublicKeyCredentialCreationOptions(user, session);
     }
 
-    @PostMapping("/registerauth")
-    @ResponseBody
-    public String getPublicKeyCredentialCreationOptions(@RequestParam ApplicationUser user, HttpSession session) {
-        if (userService.doesNotExist(user)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User " + user.getUsername() + " does not exist. Please register.");
-        }
-
+    private String getPublicKeyCredentialCreationOptions(ApplicationUser user, HttpSession session) {
+        userService.requireExists(user);
         PublicKeyCredentialCreationOptions credentialCreationOptions =
                 registrationService.createPublicKeyCredentialCreationOptions(user.toUserIdentity());
         session.setAttribute(user.getDisplayName(), credentialCreationOptions);
@@ -75,12 +69,15 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/finishauth")
+    @PostMapping("/register/finish")
     @ResponseBody
-    public ModelAndView finishRegistration(@RequestParam String credential, @RequestParam String username, @RequestParam String credentialName, HttpSession session) {
+    public ModelAndView finishRegistration(
+            @RequestParam String credential,
+            @RequestParam String username,
+            HttpSession session) {
         try {
             ApplicationUser user = userService.getUser(username).orElseThrow(NullPointerException::new);
-            Authenticator finalizedAuthenticator = registrationService.finishRelyingPartyRegistration(user, session, credential, credentialName);
+            Authenticator finalizedAuthenticator = registrationService.finishRelyingPartyRegistration(user, session, credential);
             authenticatorService.save(finalizedAuthenticator);
             return new ModelAndView("redirect:/login", HttpStatus.SEE_OTHER);
         } catch (RegistrationFailedException e) {
