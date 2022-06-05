@@ -12,7 +12,6 @@ import org.pruss.fido2server.data.Authenticator;
 import org.pruss.fido2server.service.ApplicationUserService;
 import org.pruss.fido2server.service.AuthenticatorService;
 import org.pruss.fido2server.service.RegistrationService;
-import org.pruss.fido2server.service.RelyingPartyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -31,7 +30,6 @@ import java.io.IOException;
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class AuthenticationController {
 
-    private final RelyingPartyService relyingPartyService;
     private final RegistrationService registrationService;
     private final ApplicationUserService userService;
     private AuthenticatorService authenticatorService;
@@ -102,7 +100,7 @@ public class AuthenticationController {
     @PostMapping("/login")
     @ResponseBody
     public String startLogin(@RequestParam String username, HttpSession session) {
-        AssertionRequest request = relyingPartyService.buildAssertionRequest(username);
+        AssertionRequest request = registrationService.buildAssertionRequest(username);
         try {
             session.setAttribute(username, request);
             return request.toCredentialsGetJson();
@@ -114,13 +112,12 @@ public class AuthenticationController {
     @PostMapping("/welcome")
     public String finishLogin(@RequestParam String credential, @RequestParam String username, Model model, HttpSession session) {
         try {
-            AssertionResult result = relyingPartyService.buildAssertionResult(credential, username, session);
+            AssertionResult result = registrationService.buildAssertionResult(credential, username, session);
             if (result.isSuccess()) {
                 model.addAttribute("username", username);
                 return "welcome";
-            } else {
-                return "index";
             }
+            return "index";
         } catch (IOException | AssertionFailedException e) {
             throw new RuntimeException("Authentication failed", e);
         }

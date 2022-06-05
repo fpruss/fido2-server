@@ -1,10 +1,8 @@
 package org.pruss.fido2server.service;
 
-import com.yubico.webauthn.FinishRegistrationOptions;
-import com.yubico.webauthn.RegistrationResult;
-import com.yubico.webauthn.RelyingParty;
-import com.yubico.webauthn.StartRegistrationOptions;
+import com.yubico.webauthn.*;
 import com.yubico.webauthn.data.*;
+import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
 import lombok.AllArgsConstructor;
 import org.pruss.fido2server.data.ApplicationUser;
@@ -15,6 +13,8 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Objects;
+
+import static com.yubico.webauthn.data.PublicKeyCredential.parseAssertionResponseJson;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
@@ -34,6 +34,21 @@ public class RegistrationService {
         FinishRegistrationOptions options = getFinishRegistrationOptions(user, session, pkc);
         RegistrationResult result = relyingParty.finishRegistration(options);
         return new Authenticator(result, pkc.getResponse(), user, credentialName);
+    }
+
+    public AssertionResult buildAssertionResult(String credential, String username, HttpSession session) throws AssertionFailedException, IOException {
+        PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = parseAssertionResponseJson(credential);
+        AssertionRequest request = (AssertionRequest) session.getAttribute(username);
+        return relyingParty.finishAssertion(FinishAssertionOptions.builder()
+                .request(request)
+                .response(pkc)
+                .build());
+    }
+
+    public AssertionRequest buildAssertionRequest(String username) {
+        return relyingParty.startAssertion(StartAssertionOptions.builder()
+                .username(username)
+                .build());
     }
 
     private PublicKeyCredentialCreationOptions getRequestOptions(ApplicationUser user, HttpSession session) {
