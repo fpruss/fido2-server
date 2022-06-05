@@ -1,24 +1,34 @@
-// import * as base64js from '/base64-js';
 'use strict';
-$(document).ready(function () {
-
-    const browserSupportsWebAuthn = window.PublicKeyCredential;
-    if (!browserSupportsWebAuthn) {
+$(document).ready(() => {
+    if (!window.PublicKeyCredential) {
         alert("Error: this browser does not support WebAuthn");
     }
 });
 
 function base64ToUint8Array(base64Bytes) {
     const padding = '===='.substring(0, (4 - (base64Bytes.length % 4)) % 4);
-    return base64js.toByteArray((base64Bytes + padding).replace(/\//g, "_").replace(/\+/g, "-"));
+    return base64js.toByteArray((base64Bytes + padding)
+        .replace(/\//g, "_")
+        .replace(/\+/g, "-"));
 }
 
 function uint8ArrayToBase64(bytes) {
     if (bytes instanceof Uint8Array) {
-        return base64js.fromByteArray(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-    } else {
-        return uint8ArrayToBase64(new Uint8Array(bytes));
+        return base64js.fromByteArray(bytes)
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=/g, "");
     }
+    return uint8ArrayToBase64(new Uint8Array(bytes));
+
+}
+
+function parseResponse(response) {
+    let credentialCreationOptions = "";
+    if (typeof response === 'string') {
+        credentialCreationOptions = JSON.parse(response);
+    }
+    return credentialCreationOptions;
 }
 
 function registerUser() {
@@ -28,64 +38,92 @@ function registerUser() {
         return;
     }
     let displayName = $('#displayName').val();
-    if(displayName === '') {
+    if (displayName === '') {
         displayName = username;
     }
     console.log('Sending Register User Ajax Request to the Server for user ' + username);
     $.ajax({
-            url: '/register',
+            url: '/register/begin',
             type: 'POST',
-            data: { username: username, displayName : displayName} ,
+            data: {
+                username: username,
+                displayName: displayName
+            },
             datatype: 'json'
         }
-    ).then((response) => {
-        const credentialCreationOptions = JSON.parse(response);
-        console.log('The Server Response contains the following publicKeyCredentialCreationOptions:')
-        console.log(credentialCreationOptions.publicKey)
-
-        credentialCreationOptions.publicKey.challenge = base64ToUint8Array(credentialCreationOptions.publicKey.challenge);
-        credentialCreationOptions.publicKey.user.id = base64ToUint8Array(credentialCreationOptions.publicKey.user.id);
-        if (credentialCreationOptions.publicKey.excludeCredentials) {
-            for (let i = 0; i < credentialCreationOptions.publicKey.excludeCredentials.length; i++) {
-                credentialCreationOptions.publicKey.excludeCredentials[i].id = base64ToUint8Array(credentialCreationOptions.publicKey.excludeCredentials[i].id);
-            }
-        }
+    ).then((credentialCreationOptions) => {
+        const credentialCreationOptionsJson = parseResponse(credentialCreationOptions);
+        return {
+        publicKey: {
+            ...credentialCreationOptionsJson.publicKey,
+            challenge: base64ToUint8Array(credentialCreationOptionsJson.publicKey.challenge),
+            user: {
+                ...credentialCreationOptionsJson.publicKey.user,
+                id: base64ToUint8Array(credentialCreationOptionsJson.publicKey.user.id),
+            },
+            excludeCredentials: credentialCreationOptionsJson.publicKey.excludeCredentials.map((credential) => ({
+                ...credential,
+                id: base64ToUint8Array(credential.id),
+            })),
+            extensions: credentialCreationOptionsJson.publicKey.extensions,
+        },
+    }}).then((credentialCreationOptions) => {
         console.log(`Calling navigator.credentials.create of the Credential Management API,
                 -> Browser looks for an Authenticator, requests access
                 -> the User maybe needs to authenticate
                 -> Browser pass the publicKey Options to the Authenticator
                 -> Authenticator returns a credential or null if the options where incorrect`);
-        return navigator.credentials.create({
-                publicKey: credentialCreationOptions.publicKey
+        return navigator.credentials.create(credentialCreationOptions.publicKey)
+    }).then((publicKeyCredential) => {
+        console.log('The Authenticator returned: ');
+        console.log(publicKeyCredential);
+        console.log('The AuthenticatorAttestationResponse interface represents the authenticator\'s' +
+            'response to a client’s request for the creation of a new public key credential.')
+        console.log('It contains the public key, the Credential ID and a hash of the clientData, ' +
+            'that represents the contextual binding of both the RP and the client. This includes the challenge.');
+        return publicKeyCredential;
+    }).then(publicKeyCredential => ({
+        id: publicKeyCredential.id,
+        rawId: uint8ArrayToBase64(publicKeyCredential.rawId),
+        type: publicKeyCredential.type,
+        response: {
+            attestationObject: uint8ArrayToBase64(publicKeyCredential.response.attestationObject),
+            clientDataJSON: uint8ArrayToBase64(publicKeyCredential.response.clientDataJSON),
+        }
+    })).then((encodedResult) => {
+
+        $.ajax({
+                url: '/register/finish',
+                type: 'POST',
+                data: {
+                    credential: JSON.stringify(encodedResult),
+                    username: username
+                },
+                datatype: 'json'
             }
-        ).then((credential) => {
-                console.log('Authenticator returned: ');
-                console.log(credential);
-                console.log('The AuthenticatorAttestationResponse interface represents the authenticator\'s' +
-                    'response to a client’s request for the creation of a new public key credential.')
-                console.log('It contains the public key, the Credential ID and a hash of the clientData, ' +
-                    'that represents the contextual binding of both the RP and the client. This includes the challenge.');
-                $.post(
-                    '/register/finish/' + username,
-                    JSON.stringify({
-                        id: credential.id,
-                        rawId: uint8ArrayToBase64(credential.rawId),
-                        type: credential.type,
-                        response: {
-                            attestationObject: uint8ArrayToBase64(credential.response.attestationObject),
-                            clientDataJSON: uint8ArrayToBase64(credential.response.clientDataJSON),
-                        },
-                    }),
-                    'json')
-            }
-        ).then(() => {
-                alert("successfully registered " + username + "!")
-            }
-        ).catch((error) => {
-            console.log(error)
-            alert("failed to register " + username)
-        })
-    })
+        )
+        // $.post(
+        //     '/register/finish/' + username,
+        //     JSON.stringify({
+        //         id: credential.id,
+        //         rawId: uint8ArrayToBase64(credential.rawId),
+        //         type: credential.type,
+        //         response: {
+        //             attestationObject: uint8ArrayToBase64(credential.response.attestationObject),
+        //             clientDataJSON: uint8ArrayToBase64(credential.response.clientDataJSON),
+        //         },
+        //     }),
+        //     'json')
+    }).then((response) => {
+        if (response.status === 200) {
+            window.location.href = response.url;
+        } else {
+            alert("failed to register " + username);
+        }
+    }).catch((error) => {
+        console.log(error)
+        alert("failed to register " + username)
+    });
 }
 
 function loginUser() {
