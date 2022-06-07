@@ -1,6 +1,7 @@
 'use strict';
 
-function loginUser() {
+async function loginUser() {
+    const form = document.getElementById('form');
     const username = $("#username").val()
     if (username === "") {
         alert("Please enter a username");
@@ -28,7 +29,7 @@ function loginUser() {
         return navigator.credentials.get({publicKey: credentialRequestOptionsJson.publicKey});
     }).then((assertion) => {
         logResponse(assertion);
-        const encodedAssertion = {
+        return {
             id: assertion.id,
             rawId: uint8ArrayToBase64(assertion.rawId),
             type: assertion.type,
@@ -36,32 +37,16 @@ function loginUser() {
                 authenticatorData: uint8ArrayToBase64(assertion.response.authenticatorData),
                 clientDataJSON: uint8ArrayToBase64(assertion.response.clientDataJSON),
                 signature: uint8ArrayToBase64(assertion.response.signature),
-                userHandle: uint8ArrayToBase64(assertion.response.userHandle),
+                userHandle: assertion.response.userHandle && uint8ArrayToBase64(assertion.response.userHandle),
             },
+            clientExtensionResults: assertion.getClientExtensionResults(),
         };
-        const url = '/login/finish';
-        const data = {
-            credential: JSON.stringify(encodedAssertion),
-            username: username
-        };
-        logAjaxPost(url, data)
-
-        const params = {
-            mode: "no-cors",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            method: "POST",
-            body: JSON.stringify(data)
-        }
-
-        fetch(url, params)
-            .then((response) => {
-                window.location.replace(response.url);
-            }).catch((error) => {
-            console.log(error)
-            alert("failed to login " + username)
-        })
+    }).then((encodedResult) => {
+        document.getElementById('credential').value = JSON.stringify(encodedResult);
+        form.submit();
+    }).catch((error) => {
+        console.log(error)
+        alert("failed to login")
     });
 }
 

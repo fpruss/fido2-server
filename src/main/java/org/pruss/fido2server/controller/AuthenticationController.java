@@ -49,7 +49,8 @@ public class AuthenticationController {
     public String beginRegistration(
             @RequestParam String username,
             @RequestParam String displayName,
-            HttpSession session) {
+            HttpSession session
+    ) {
         userService.requireDoesNotExist(username);
         ApplicationUser user = userService.createApplicationUser(username, displayName);
         userService.save(user);
@@ -74,10 +75,12 @@ public class AuthenticationController {
     public ModelAndView finishRegistration(
             @RequestParam String credential,
             @RequestParam String username,
-            HttpSession session) {
+            @RequestParam String tokenName,
+            HttpSession session
+    ) {
         try {
             ApplicationUser user = userService.getUser(username).orElseThrow(NullPointerException::new);
-            Authenticator finalizedAuthenticator = registrationService.finishRelyingPartyRegistration(user, session, credential);
+            Authenticator finalizedAuthenticator = registrationService.finishRelyingPartyRegistration(user, session, credential, tokenName);
             authenticatorService.save(finalizedAuthenticator);
             return new ModelAndView("redirect:/login/begin", HttpStatus.SEE_OTHER);
         } catch (RegistrationFailedException e) {
@@ -106,8 +109,12 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/login/finish")
-    public String finishLogin(@RequestParam String credential, @RequestParam String username, Model model, HttpSession session) {
+    @PostMapping("/welcome")
+    public String finishLogin(@RequestParam String credential,
+                              @RequestParam String username,
+                              Model model,
+                              HttpSession session
+    ) {
         try {
             AssertionResult result = registrationService.buildAssertionResult(credential, username, session);
             if (result.isSuccess()) {

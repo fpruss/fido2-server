@@ -10,6 +10,11 @@ function registerUser() {
     if (displayName === '') {
         displayName = username;
     }
+    let tokenName = $('#tokenName').val();
+    if (tokenName === '') {
+        alert('please enter a tokenName');
+        return;
+    }
     const url = '/register/begin';
     const data = {
         username: username,
@@ -47,24 +52,21 @@ function registerUser() {
         const url = '/register/finish';
         const data = {
             credential: JSON.stringify(encodedResult),
-            username: username
+            username: username,
+            tokenName: tokenName
         };
         logAjaxPost(url, data);
-
-        const params = {
-            mode: "no-cors",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            method: "POST",
-            body: JSON.stringify(data)
-        }
-        fetch(url, params)
-            .then((response) => {
-                window.location.replace(response.url);
-            }).catch((error) => {
-            console.log(error)
-            alert("failed to register " + username)
+        $.ajax({
+                url: url,
+                type: 'POST',
+                data: data,
+                datatype: 'json',
+            }
+        ).then(() => {
+            window.location.href = 'http://localhost:8080/login/begin';
+        }).catch((error) => {
+            console.log(error);
+            alert("failed to register " + username);
         })
     });
 }

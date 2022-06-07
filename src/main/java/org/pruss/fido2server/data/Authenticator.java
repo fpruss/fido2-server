@@ -20,6 +20,9 @@ public class Authenticator {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column
+    private String name;
+
     @Lob
     @Column(nullable = false)
     @Convert(converter = ByteArrayAttributeConverter.class)
@@ -51,7 +54,9 @@ public class Authenticator {
 
     public Authenticator(RegistrationResult result,
                          AuthenticatorAttestationResponse response,
-                         ApplicationUser applicationUser) {
+                         ApplicationUser applicationUser,
+                         String name
+    ) {
         Optional<AttestedCredentialData> attestationData = response.getAttestation()
                 .getAuthenticatorData()
                 .getAttestedCredentialData();
@@ -59,6 +64,7 @@ public class Authenticator {
         this.publicKey = result.getPublicKeyCose();
         this.aaguid = attestationData.get().getAaguid();
         this.count = result.getSignatureCount();
+        this.name = name;
         this.applicationUser = applicationUser;
     }
 }

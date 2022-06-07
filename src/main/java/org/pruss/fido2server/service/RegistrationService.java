@@ -35,11 +35,11 @@ public class RegistrationService {
         return relyingParty.startRegistration(registrationOptions);
     }
 
-    public Authenticator finishRelyingPartyRegistration(ApplicationUser user, HttpSession session, String credential) throws IOException, RegistrationFailedException, NullPointerException {
+    public Authenticator finishRelyingPartyRegistration(ApplicationUser user, HttpSession session, String credential, String tokenName) throws IOException, RegistrationFailedException, NullPointerException {
         PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential.parseRegistrationResponseJson(credential);
         FinishRegistrationOptions options = getFinishRegistrationOptions(user, session, pkc);
         RegistrationResult result = relyingParty.finishRegistration(options);
-        return new Authenticator(result, pkc.getResponse(), user);
+        return new Authenticator(result, pkc.getResponse(), user, tokenName);
     }
 
     public AssertionResult buildAssertionResult(String credential, String username, HttpSession session) throws AssertionFailedException, IOException {

@@ -8,11 +8,14 @@
 <div th:replace="header :: header">...</div>
 <div>
     <div>
-        <label for="username">Username:</label>
-        <input type="text" name="username" id="username" required>
-        <input type="hidden" id="credential" name="credential">
+        <form action="/welcome" method="POST" id="form">
+            <legend>Login</legend>
+            <label for="username">Username:</label>
+            <input type="text" name="username" id="username" required>
+            <input type="hidden" id="credential" name="credential">
+        </form>
+        <button id="loginButton">Login</button>
     </div>
-    <button id="loginButton">Login</button>
 </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"
