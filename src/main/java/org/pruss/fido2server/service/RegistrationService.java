@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static com.yubico.webauthn.data.PublicKeyCredential.parseAssertionResponseJson;
+import static com.yubico.webauthn.data.UserVerificationRequirement.*;
 import static java.util.Objects.*;
 
 @Service
@@ -24,8 +25,12 @@ public class RegistrationService {
     private final RelyingParty relyingParty;
 
     public PublicKeyCredentialCreationOptions createPublicKeyCredentialCreationOptions(UserIdentity userIdentity) {
+        AuthenticatorSelectionCriteria authenticatorSelectionCriteria = AuthenticatorSelectionCriteria.builder()
+                .userVerification(REQUIRED)
+                .build();
         StartRegistrationOptions registrationOptions = StartRegistrationOptions.builder()
                 .user(userIdentity)
+                .authenticatorSelection(authenticatorSelectionCriteria)
                 .build();
         return relyingParty.startRegistration(registrationOptions);
     }
@@ -49,6 +54,7 @@ public class RegistrationService {
     public AssertionRequest buildAssertionRequest(String username) {
         return relyingParty.startAssertion(StartAssertionOptions.builder()
                 .username(username)
+                .userVerification(REQUIRED)
                 .build());
     }
 

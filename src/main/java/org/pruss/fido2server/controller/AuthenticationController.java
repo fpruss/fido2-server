@@ -35,7 +35,7 @@ public class AuthenticationController {
     private AuthenticatorService authenticatorService;
 
     @GetMapping("/")
-    public String welcome() {
+    public String index() {
         return "index";
     }
 
@@ -79,7 +79,7 @@ public class AuthenticationController {
             ApplicationUser user = userService.getUser(username).orElseThrow(NullPointerException::new);
             Authenticator finalizedAuthenticator = registrationService.finishRelyingPartyRegistration(user, session, credential);
             authenticatorService.save(finalizedAuthenticator);
-            return new ModelAndView("redirect:/login", HttpStatus.SEE_OTHER);
+            return new ModelAndView("redirect:/login/begin", HttpStatus.SEE_OTHER);
         } catch (RegistrationFailedException e) {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Registration failed.", e);
         } catch (IOException e) {
@@ -89,12 +89,12 @@ public class AuthenticationController {
         }
     }
 
-    @GetMapping("/login")
+    @GetMapping("/login/begin")
     public String loginPage() {
         return "login";
     }
 
-    @PostMapping("/login")
+    @PostMapping("/login/begin")
     @ResponseBody
     public String startLogin(@RequestParam String username, HttpSession session) {
         AssertionRequest request = registrationService.buildAssertionRequest(username);
@@ -106,7 +106,7 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/welcome")
+    @PostMapping("/login/finish")
     public String finishLogin(@RequestParam String credential, @RequestParam String username, Model model, HttpSession session) {
         try {
             AssertionResult result = registrationService.buildAssertionResult(credential, username, session);
