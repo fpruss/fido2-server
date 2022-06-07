@@ -96,16 +96,14 @@ function registerUser() {
                 },
                 datatype: 'json',
             }
-        )
-    }).then((response) => {
-        if (response.status === 200) {
-            window.location.href = response.url;
-        } else {
-            alert("failed to register " + username);
-        }
-    }).catch((error) => {
-        console.log(error)
-        alert("failed to register " + username)
+        ).then(() => {
+            alert("successfully registered " + username);
+            const oldUrl = window.location.href;
+            window.location.href = oldUrl.substring(0, oldUrl.indexOf("register")) + "login";
+        }).catch((error) => {
+            console.log(error)
+            alert("failed to register " + username)
+        })
     });
 }
 
