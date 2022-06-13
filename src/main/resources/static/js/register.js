@@ -27,17 +27,10 @@ function encodePublicKeyCredential(publicKeyCredential) {
 
 function registerUser() {
     const username = $('#username').val();
-    if (username === '') {
-        alert('please enter a username');
-        return;
-    }
-    let displayName = $('#displayName').val();
-    if (displayName === '') {
-        displayName = username;
-    }
-    let tokenName = $('#tokenName').val();
-    if (tokenName === '') {
-        alert('please enter a tokenName');
+    const displayName = $('#displayName').val();
+    const tokenName = $('#tokenName').val();
+    if (username === '' || displayName === '' || tokenName === '') {
+        alert('please fill all fields');
         return;
     }
     const url = '/register/begin';

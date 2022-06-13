@@ -12,11 +12,10 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Objects;
 
 import static com.yubico.webauthn.data.PublicKeyCredential.parseAssertionResponseJson;
-import static com.yubico.webauthn.data.UserVerificationRequirement.*;
-import static java.util.Objects.*;
+import static com.yubico.webauthn.data.UserVerificationRequirement.REQUIRED;
+import static java.util.Objects.requireNonNull;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
