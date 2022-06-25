@@ -1,6 +1,5 @@
 'use strict';
-
-async function loginUser() {
+function loginUser() {
     const form = document.getElementById('form');
     const username = $("#username").val()
     if (username === "") {
@@ -51,3 +50,9 @@ async function loginUser() {
 }
 
 $('#loginButton').click(loginUser);
+const element = document.getElementById('username');
+element.addEventListener('keypress', (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+    }
+});
