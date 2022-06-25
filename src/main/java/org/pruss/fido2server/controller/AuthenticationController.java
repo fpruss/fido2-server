@@ -61,7 +61,7 @@ public class AuthenticationController {
         userService.requireExists(user);
         PublicKeyCredentialCreationOptions credentialCreationOptions =
                 registrationService.createPublicKeyCredentialCreationOptions(user.toUserIdentity());
-        session.setAttribute(user.getDisplayName(), credentialCreationOptions);
+        session.setAttribute(user.getUsername(), credentialCreationOptions);
 
         try {
             return credentialCreationOptions.toCredentialsCreateJson();
