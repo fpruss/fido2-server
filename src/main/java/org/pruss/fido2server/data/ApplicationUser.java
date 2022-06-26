@@ -41,4 +41,14 @@ public class ApplicationUser {
                 .id(getHandle())
                 .build();
     }
+
+    @Override
+    public String toString() {
+        return "ApplicationUser{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", handle=" + handle +
+                '}';
+    }
 }

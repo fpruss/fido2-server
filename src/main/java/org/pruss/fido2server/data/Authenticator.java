@@ -67,4 +67,17 @@ public class Authenticator {
         this.name = name;
         this.applicationUser = applicationUser;
     }
+
+    @Override
+    public String toString() {
+        return "Authenticator{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", credentialId=" + credentialId +
+                ", publicKey=" + publicKey +
+                ", applicationUser=" + applicationUser +
+                ", count=" + count +
+                ", aaguid=" + aaguid +
+                '}';
+    }
 }
