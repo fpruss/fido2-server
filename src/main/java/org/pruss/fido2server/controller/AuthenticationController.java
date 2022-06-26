@@ -118,7 +118,9 @@ public class AuthenticationController {
         try {
             AssertionResult result = registrationService.buildAssertionResult(credential, username, session);
             if (result.isSuccess()) {
-                model.addAttribute("username", username);
+                ApplicationUser user = userService.getUser(username).orElseThrow(NullPointerException::new);
+                model.addAttribute("displayname", user.getDisplayName());
+                model.addAttribute("authenticator", authenticatorService.getAuthenticator(user).get(0).toString());
                 return "welcome";
             }
             return "index";
