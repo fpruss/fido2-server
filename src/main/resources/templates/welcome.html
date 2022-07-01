@@ -8,7 +8,27 @@
     <div th:replace="header :: header">...</div>
     <h1>Welcome</h1>
     <h2 th:text="${displayname}">Display Name</h2>
-    <h1>Your registered Key</h1>
-    <h2 th:text="${authenticator}">Keys</h2>
+    <h1>Your registered Authenticators</h1>
+    <div>
+        <tr th:each="authenticator : ${authenticators}">
+            <td><b><span th:text="${authenticator}"></span></b></td>
+            <p></p>
+        </tr>
+    </div>
+    <div>
+        <h2>New Authenticator:</h2>
+        <label for="tokenName">Token Name:</label>
+        <input type="text" name="tokenName" id="tokenName" required>
+        <input type="hidden" name="username" id="username" th:value="${username}">
+        <input type="hidden" name="displayName" id="displayName" th:value="${displayname}">
+        <button id="registerButton">Register</button>
+    </div>
 </body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+        crossorigin="anonymous"></script>
+<script src="/js/base64js.min.js"></script>
+<script src="/js/logging.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/register.js"></script>
 </html>

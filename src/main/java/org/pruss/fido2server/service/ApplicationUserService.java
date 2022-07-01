@@ -31,10 +31,8 @@ public class ApplicationUserService {
         }
     }
 
-    public void requireDoesNotExist(String username) {
-        if (getUser(username).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " already exists. Choose a new name.");
-        }
+    public boolean userExists(String username) {
+        return getUser(username).isPresent();
     }
 
     public ApplicationUser createApplicationUser(String username, String displayName) {

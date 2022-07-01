@@ -51,8 +51,12 @@ public class AuthenticationController {
             @RequestParam String displayName,
             HttpSession session
     ) {
-        userService.requireDoesNotExist(username);
-        ApplicationUser user = userService.createApplicationUser(username, displayName);
+        ApplicationUser user;
+        if (userService.userExists(username)) {
+            user = userService.getUser(username).orElseThrow(NullPointerException::new);
+        } else {
+            user = userService.createApplicationUser(username, displayName);
+        }
         userService.save(user);
         return getPublicKeyCredentialCreationOptions(user, session);
     }
@@ -119,8 +123,9 @@ public class AuthenticationController {
             AssertionResult result = registrationService.buildAssertionResult(credential, username, session);
             if (result.isSuccess()) {
                 ApplicationUser user = userService.getUser(username).orElseThrow(NullPointerException::new);
+                model.addAttribute("username", username);
                 model.addAttribute("displayname", user.getDisplayName());
-                model.addAttribute("authenticator", authenticatorService.getAuthenticator(user).get(0).toString());
+                model.addAttribute("authenticators", authenticatorService.getAuthenticators(user));
                 return "welcome";
             }
             return "index";

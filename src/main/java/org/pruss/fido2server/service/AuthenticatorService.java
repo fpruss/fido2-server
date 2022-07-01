@@ -19,7 +19,7 @@ public class AuthenticatorService {
         credentialRepositoryImpl.getAuthenticatorRepository().save(authenticator);
     }
 
-    public List<Authenticator> getAuthenticator(ApplicationUser user) {
+    public List<Authenticator> getAuthenticators(ApplicationUser user) {
         return credentialRepositoryImpl.getAuthenticatorRepository().findAllByApplicationUser(user);
     }
 }

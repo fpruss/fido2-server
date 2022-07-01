@@ -76,8 +76,6 @@ public class Authenticator {
                 ", credentialId=" + credentialId +
                 ", publicKey=" + publicKey +
                 ", applicationUser=" + applicationUser +
-                ", count=" + count +
-                ", aaguid=" + aaguid +
                 '}';
     }
 }
